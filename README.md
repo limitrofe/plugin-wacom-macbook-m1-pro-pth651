@@ -90,34 +90,48 @@ remove zona morta sozinho.
 
 ### ExpressKeys (aba *Auxiliary Settings*)
 
-| Índice | Binding | Função |
-| --- | --- | --- |
-| 0 | `Application+Z` | Desfazer (⌘Z) |
-| 1 | `Application+Shift+Z` | Refazer (⌘⇧Z) |
-| 2 | `LeftBracket` | Diminuir pincel |
-| 3 | `RightBracket` | Aumentar pincel |
-| 4 | `Space` | Mão/pan (segurar) |
-| 5 | `Alt` | Conta-gotas (segurar) |
-| 6 | `Application` | Command (segurar) |
-| 7 | `Shift` | Shift (segurar — trava proporção / linha reta) |
+Ordem física **confirmada por teste** (com o `teste-teclas.html`):
+**coluna esquerda de cima para baixo = índices 0–3**, **coluna direita de cima para baixo = índices 4–7**.
+
+| Posição física | Índice | Binding | Função |
+| --- | --- | --- | --- |
+| Esquerda 1 (topo) | 0 | `Application+Z` | Desfazer (⌘Z) |
+| Esquerda 2 | 1 | `Application+Shift+Z` | Refazer (⌘⇧Z) |
+| Esquerda 3 | 2 | `LeftBracket` | Diminuir pincel |
+| Esquerda 4 (base) | 3 | `RightBracket` | Aumentar pincel |
+| Direita 1 (topo) | 4 | `Space` | Mão/pan (segurar) |
+| Direita 2 | 5 | `Alt` | Conta-gotas (segurar) |
+| Direita 3 | 6 | `Application` | Command (segurar) |
+| Direita 4 (base) | 7 | `Shift` | Shift (segurar — trava proporção / linha reta) |
+
+A lógica: as teclas de **desenho** (desfazer, refazer, tamanho do pincel) ficam na coluna
+esquerda, a mais perto da mão que segura a caneta; na direita ficam os **modificadores de
+segurar**.
 
 No macOS, os nomes de tecla do OTD são: `Application` = ⌘, `Alt` = ⌥, `Control` = ⌃.
 Combos usam o tipo **Multi-Key Binding** com a propriedade `Keys` separada por `+`.
 
-**A ordem física das 8 teclas ainda precisa ser confirmada** — o índice 0 pode não ser a
-tecla de cima. O jeito de ajustar é na aba *Auxiliary Settings* do app (a GUI funciona
-neste macOS).
+**Cuidado ao testar**: um binding combinado emite **vários eventos de teclado por aperto**
+(⌘Z emite 2; ⌘⇧Z emite 3). Com um diálogo aberto, o `⌘Z`/`Escape` mexe nele — foi
+justamente por isso que o índice 7 ficou como `Shift` em vez de `Escape`, que fechava
+janelas sem querer.
+
+Para remapear: aba *Auxiliary Settings* do app (a GUI funciona neste macOS) ou edite
+`AuxButtons` no `settings.json` e rode `loadsettings`.
 
 ### O que o OTD **não** suporta nesta mesa
 
-- **Touch ring** (o anel): a especificação da PTH-651 no OTD declara só 8 aux buttons,
-  sem wheel. O anel não faz nada.
+- **Touch ring** (o anel de rotação) e o **botão central do anel**: a especificação da
+  PTH-651 no OTD declara só 8 aux buttons, sem wheel. Testado — o anel não emite nada.
 
 ## Verificação
 
-- Teste de pressão/tilt: `teste-pressao.html` (também copiado em
-  `/Users/Shared/teste-pressao.html` para abrir no Chrome sem esbarrar no TCC de
-  `~/Documents`).
+- Teste de pressão/tilt: `teste-pressao.html`
+- Teste das 8 ExpressKeys: `teste-teclas.html` (mostra cada tecla na ordem em que é
+  apertada — foi assim que a ordem física foi levantada)
+
+  Os dois são copiados para `/Users/Shared/` antes de abrir no Chrome, para não esbarrar
+  no TCC de `~/Documents` (o Chrome não tem acesso à pasta Documentos aqui).
 - Console do OTD (ótimo para diagnosticar):
   ```sh
   cd /Applications/OpenTabletDriver.app/Contents/MacOS

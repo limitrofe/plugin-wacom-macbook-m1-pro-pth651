@@ -32,16 +32,19 @@ def store(path, prop, value):
     }
 
 
-# Ordem física a confirmar pelo usuário; remapeável na aba "Auxiliary Settings"
+# Ordem física confirmada pelo teste teste-teclas.html:
+#   coluna ESQUERDA de cima para baixo = índices 0-3
+#   coluna DIREITA  de cima para baixo = índices 4-7
+# Remapeável na aba "Auxiliary Settings" do app.
 AUX = [
-    store(MULTI, "Keys", "Application+Z"),        # 0 - desfazer
-    store(MULTI, "Keys", "Application+Shift+Z"),  # 1 - refazer
-    store(KEY, "Key", "LeftBracket"),             # 2 - diminuir pincel
-    store(KEY, "Key", "RightBracket"),            # 3 - aumentar pincel
-    store(KEY, "Key", "Space"),                   # 4 - mão/pan (segurar)
-    store(KEY, "Key", "Alt"),                     # 5 - conta-gotas (segurar)
-    store(KEY, "Key", "Application"),             # 6 - Command (segurar)
-    store(KEY, "Key", "Shift"),                   # 7 - Shift (segurar): trava proporção / linha reta
+    store(MULTI, "Keys", "Application+Z"),        # 0 - Esq.1 (topo) desfazer
+    store(MULTI, "Keys", "Application+Shift+Z"),  # 1 - Esq.2        refazer
+    store(KEY, "Key", "LeftBracket"),             # 2 - Esq.3        diminuir pincel
+    store(KEY, "Key", "RightBracket"),            # 3 - Esq.4 (base) aumentar pincel
+    store(KEY, "Key", "Space"),                   # 4 - Dir.1 (topo) mão/pan (segurar)
+    store(KEY, "Key", "Alt"),                     # 5 - Dir.2        conta-gotas (segurar)
+    store(KEY, "Key", "Application"),             # 6 - Dir.3        Command (segurar)
+    store(KEY, "Key", "Shift"),                   # 7 - Dir.4 (base) Shift (segurar)
 ]
 
 
