@@ -1,0 +1,9 @@
+# Binário do OpenTabletDriver (baixado do release oficial — não redistribuir aqui)
+otd/
+
+# Logs de execução locais
+logs/
+
+# Backups locais
+*.bak-*
+*.tar.gz

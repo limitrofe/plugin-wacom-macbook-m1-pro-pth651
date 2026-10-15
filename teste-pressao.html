@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Teste de pressão — Wacom PTH-651 / OpenTabletDriver</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px;
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    background: #14161a; color: #e7e9ee;
+  }
+  h1 { font-size: 18px; margin: 0 0 4px; font-weight: 600; }
+  p.sub { margin: 0 0 20px; color: #9aa3b2; }
+  .wrap { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+  canvas {
+    background: #1c1f26; border-radius: 10px;
+    box-shadow: 0 0 0 1px #2b3038 inset;
+    touch-action: none; cursor: crosshair;
+  }
+  .panel { min-width: 300px; }
+  .row {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 7px 12px; border-radius: 7px; background: #1c1f26; margin-bottom: 6px;
+  }
+  .row .k { color: #9aa3b2; }
+  .row .v { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .bar { height: 10px; border-radius: 5px; background: #2b3038; overflow: hidden; margin: 2px 0 14px; }
+  .bar > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #3b82f6, #22d3ee); transition: width .05s linear; }
+  .ok { color: #4ade80; }
+  .bad { color: #f87171; }
+  .warn { color: #fbbf24; }
+  ul { padding-left: 18px; color: #9aa3b2; }
+  li { margin-bottom: 4px; }
+  code { background: #232733; padding: 1px 5px; border-radius: 4px; color: #cbd5e1; }
+</style>
+</head>
+<body>
+<h1>Teste de pressão e tilt</h1>
+<p class="sub">Desenhe na área escura com a caneta. A espessura do traço segue a força aplicada.</p>
+
+<div class="wrap">
+  <canvas id="pad" width="620" height="520"></canvas>
+
+  <div class="panel">
+    <div class="row"><span class="k">Tipo de ponteiro</span><span class="v" id="ptype">—</span></div>
+    <div class="row"><span class="k">Pressão</span><span class="v" id="pval">—</span></div>
+    <div class="bar"><i id="pbar"></i></div>
+    <div class="row"><span class="k">Máx. de pressão visto</span><span class="v" id="pmax">—</span></div>
+    <div class="row"><span class="k">Tilt X / Y</span><span class="v" id="tilt">—</span></div>
+    <div class="row"><span class="k">width / height (evento)</span><span class="v" id="wh">—</span></div>
+    <div class="row"><span class="k">Eventos recebidos</span><span class="v" id="count">0</span></div>
+    <div class="row"><span class="k">Veredito</span><span class="v" id="verdict">—</span></div>
+  </div>
+</div>
+
+<h1 style="margin-top:26px">Como interpretar</h1>
+<ul>
+  <li><b>Pressão funciona</b> se o número passa de 0 e sobe quando você aperta mais, e o traço engrossa.</li>
+  <li>Se a pressão ficar sempre em <code>0.5</code> e o tipo de ponteiro for <code>mouse</code>, o app está recebendo o OTD como mouse comum — não como caneta.</li>
+  <li><b>Tilt</b>: incline a caneta; deve sair de 0 e variar entre aprox. -60 e 60.</li>
+  <li>Faça um círculo: agora ele deve sair <b>redondo</b> (área do tablet corrigida para a proporção do monitor).</li>
+</ul>
+
+<script>
+const pad = document.getElementById('pad');
+const ctx = pad.getContext('2d');
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+ctx.strokeStyle = '#e7e9ee';
+
+let drawing = false;
+let last = null;
+let maxPressure = 0;
+let count = 0;
+let sawPen = false;
+let sawPressureVariation = false;
+let pressures = new Set();
+
+function set(id, txt, cls) {
+  const el = document.getElementById(id);
+  el.textContent = txt;
+  el.className = 'v' + (cls ? ' ' + cls : '');
+}
+
+function verdict() {
+  const v = document.getElementById('verdict');
+  if (count === 0) { v.textContent = 'aguardando…'; v.className = 'v'; return; }
+  if (!sawPen) { v.textContent = 'recebido como MOUSE (sem caneta)'; v.className = 'v bad'; return; }
+  if (pressures.size > 1) { v.textContent = 'pressão OK (varia)'; v.className = 'v ok'; return; }
+  v.textContent = 'caneta detectada, pressão fixa em ' + [...pressures][0]; v.className = 'v warn';
+}
+
+function cs() { return window.devicePixelRatio || 1; }
+
+function pos(e) {
+  const r = pad.getBoundingClientRect();
+  return { x: e.clientX - r.left, y: e.clientY - r.top };
+}
+
+function handle(e, isDown) {
+  count++;
+  const p = e.pressure;
+  const type = e.pointerType || 'desconhecido';
+  const isPen = type === 'pen' || e.width > 1 || e.height > 1 || (p > 0 && p < 1);
+  if (isPen) sawPen = true;
+  pressures.add(Number(p.toFixed(3)));
+  if (p > maxPressure) maxPressure = p;
+
+  set('ptype', type + (isPen ? ' (caneta)' : ' (mouse)'), isPen ? 'ok' : 'bad');
+  set('pval', p.toFixed(3));
+  document.getElementById('pbar').style.width = Math.min(100, p * 100) + '%';
+  set('pmax', maxPressure.toFixed(3));
+  set('tilt', (e.tiltX || 0) + ' / ' + (e.tiltY || 0));
+  set('wh', (e.width || 0).toFixed(1) + ' / ' + (e.height || 0).toFixed(1));
+  set('count', String(count));
+  verdict();
+
+  const pt = pos(e);
+  if (isDown || drawing) {
+    if (last) {
+      ctx.beginPath();
+      ctx.lineWidth = Math.max(0.5, p * 26);
+      ctx.moveTo(last.x, last.y);
+      ctx.lineTo(pt.x, pt.y);
+      ctx.stroke();
+    }
+    last = pt;
+  } else {
+    last = pt;
+  }
+}
+
+pad.addEventListener('pointerdown', e => { e.preventDefault(); drawing = true; last = null; handle(e, true); });
+pad.addEventListener('pointermove', e => { e.preventDefault(); handle(e, drawing); });
+pad.addEventListener('pointerup', e => { drawing = false; last = null; });
+pad.addEventListener('pointerleave', () => { drawing = false; last = null; });
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { ctx.clearRect(0, 0, pad.width, pad.height); count = 0; maxPressure = 0; pressures.clear(); sawPen = false; last = null;
+    ['ptype','pval','pmax','tilt','wh','verdict'].forEach(i => set(i, '—')); set('count', '0'); document.getElementById('pbar').style.width = '0'; }
+});
+</script>
+</body>
+</html>
