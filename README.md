@@ -154,7 +154,12 @@ sem hub.
 
 ## Créditos e licenças
 
-- **OpenTabletDriver** — https://opentabletdriver.net — licença LGPL-3.0
+Este projeto (scripts, páginas de teste e documentação) é **MIT** — ver `LICENSE`.
+
+O **OpenTabletDriver não está incluído neste repositório**: ele é baixado do release
+oficial e continua sob a licença dele, **LGPL-3.0**.
+
+- **OpenTabletDriver** — https://opentabletdriver.net — LGPL-3.0
 - **wacom-driver** (referência de estudo) — https://github.com/cadenburleson/wacom-driver — GPL-2.0
 - Formatos de relatório derivam do driver do kernel Linux (`drivers/hid/wacom_wac.c`), GPL-2.0
 - Wacom e Intuos são marcas da Wacom Co., Ltd. Este projeto não tem vínculo com a Wacom.
