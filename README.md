@@ -124,6 +124,75 @@ Para remapear: aba *Auxiliary Settings* do app (a GUI funciona neste macOS) ou e
 - **Touch ring** (o anel de rotação) e o **botão central do anel**: a especificação da
   PTH-651 no OTD declara só 8 aux buttons, sem wheel. Testado — o anel não emite nada.
 
+## Como trocar o mapeamento da caneta sozinho
+
+A caneta da Wacom é **absoluta**: a superfície da mesa é mapeada para um retângulo do
+desktop (a *Display area*). Fora desse retângulo a caneta não aponta para lugar nenhum —
+é por isso que, com a configuração atual, ela só funciona no ultrawide.
+
+Layout das telas neste Mac:
+
+| Display | Resolução | Posição |
+| --- | --- | --- |
+| 0 — MacBook (Liquid Retina XDR) | 1728x1117 | x=3440 |
+| 1 — Samsung S34CG50 (ultrawide) | 3440x1440 | 0,0 |
+| desktop inteiro (bounding box) | 5168x1440 | centro `<2584, 720>` |
+
+### Pelo app (recomendado)
+
+1. Abra o **OpenTabletDriver.app** e vá na aba **Output**.
+2. No retângulo do **Display**, clique com o **botão direito** → **Set to display** →
+   escolha a tela. Os itens aparecem como `Display 0 (1728x1117@<3440, 241>)`,
+   `Display 1 (3440x1440@<0, 0>)` e a tela virtual (o desktop inteiro).
+3. No retângulo do **Tablet**, clique com o **botão direito** e marque
+   **Lock aspect ratio**.
+4. Ainda no Tablet, clique no campo **Width**, **digite o valor de novo** (ex.: `223,52`)
+   e confirme. Esse passo é necessário: o lock só reage a *mudanças* — com ele ligado, o
+   OTD recalcula a altura sozinho (`altura = altura_display / largura_display * largura`).
+   Sem digitar de novo, ele não corrige o que já estava na tela.
+5. Clique em **Save** — **não basta o Apply**.
+
+> **Apply x Save**: `Apply` manda a configuração só para o daemon em memória; `Save`
+> grava no `settings.json`. Como o daemon roda pelo LaunchAgent, **o que foi só aplicado
+> se perde no próximo restart**. Use sempre o **Save**.
+
+### Pelo Console (linha de comando)
+
+```sh
+cd /Applications/OpenTabletDriver.app/Contents/MacOS
+
+# ver as telas e a área atual
+./OpenTabletDriver.Console listdisplays
+./OpenTabletDriver.Console getareas "Wacom PTH-651"
+
+# mapear para uma tela pelo índice
+./OpenTabletDriver.Console maptodisplayindex "Wacom PTH-651" 1
+
+# ...ou para o desktop inteiro, com a área do tablet já corrigida
+./OpenTabletDriver.Console setdisplayarea "Wacom PTH-651" 5168 1440 2584 720
+./OpenTabletDriver.Console settabletarea  "Wacom PTH-651" 223.52 62.28 111.76 31.14 0
+```
+
+Valem as mesmas regras do app: `set*` só altera a memória. Para persistir, grave o
+arquivo e recarregue:
+
+```sh
+./OpenTabletDriver.Console savedefaultsettings
+# ou, editando o arquivo na mão:
+./OpenTabletDriver.Console loadsettings "/Users/jota/Library/Application Support/OpenTabletDriver/settings.json"
+```
+
+### Tabela de proporções (mesa 223,52 x 139,7 mm)
+
+A altura da área do tablet para manter a proporção é sempre
+`(altura_display / largura_display) * 223,52`:
+
+| Mapear para | Área do tablet | Custo |
+| --- | --- | --- |
+| Ultrawide 3440x1440 (2,39:1) | 223,52 x **93,57** mm | perde 33% da altura |
+| Desktop inteiro 5168x1440 (3,59:1) | 223,52 x **62,28** mm | perde 55% da altura |
+| Qualquer uma, com a mesa inteira | 223,52 x 139,7 mm | traço esticado na horizontal |
+
 ## Verificação
 
 - Teste de pressão/tilt: `teste-pressao.html`
